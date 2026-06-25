@@ -1,12 +1,14 @@
 // --- TRANSLATIONS DICTIONARY ---
 const translations = {
     en: {
-        formTitle: "Log Medication",
+        formTitleAdd: "Log Medication",
+        formTitleEdit: "Edit Medication Entry",
         lblDate: "Date",
         lblTime: "Time",
         lblPillName: "Medication Name",
         lblDose: "Dosage",
-        btnSave: "Save Entry",
+        btnSaveAdd: "Save Entry",
+        btnSaveEdit: "Update Entry",
         calendarTitle: "Calendar",
         developer: "Developer: Vladyslav",
         weekdays: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
@@ -14,15 +16,22 @@ const translations = {
         noRecords: "No medications recorded for this day.",
         dayStatus: "Quick Status for the whole day:",
         btnTaken: "Taken",
-        btnMissed: "Missed"
+        btnMissed: "Missed",
+        btnActionEdit: "Edit",
+        btnActionDelete: "Delete",
+        alertSaved: "Entry saved!",
+        alertUpdated: "Entry updated!",
+        confirmDelete: "Are you sure you want to delete this log?"
     },
     uk: {
-        formTitle: "Внесення ліків",
+        formTitleAdd: "Внесення ліків",
+        formTitleEdit: "Редагування запису",
         lblDate: "Дата",
         lblTime: "Час",
         lblPillName: "Назва ліків",
         lblDose: "Дозування",
-        btnSave: "Зберегти запис",
+        btnSaveAdd: "Зберегти запис",
+        btnSaveEdit: "Оновити запис",
         calendarTitle: "Календар",
         developer: "Розробник: Владислав",
         weekdays: ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
@@ -30,15 +39,22 @@ const translations = {
         noRecords: "Немає записів про прийом ліків на цей день.",
         dayStatus: "Швидкий статус для всього дня:",
         btnTaken: "Прийнято",
-        btnMissed: "Пропущено"
+        btnMissed: "Пропущено",
+        btnActionEdit: "Редагувати",
+        btnActionDelete: "Видалити",
+        alertSaved: "Запис збережено!",
+        alertUpdated: "Запис оновлено!",
+        confirmDelete: "Ви впевнені, що хочете видалити цей запис?"
     },
     cs: {
-        formTitle: "Záznam léků",
+        formTitleAdd: "Záznam léků",
+        formTitleEdit: "Upravit záznam léků",
         lblDate: "Datum",
         lblTime: "Čas",
         lblPillName: "Název léku",
         lblDose: "Dávkování",
-        btnSave: "Uložit záznam",
+        btnSaveAdd: "Uložit záznam",
+        btnSaveEdit: "Aktualizovat",
         calendarTitle: "Kalendář",
         developer: "Vývojář: Vladyslav",
         weekdays: ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"],
@@ -46,7 +62,12 @@ const translations = {
         noRecords: "Pro tento den nejsou zaznamenány žádné léky.",
         dayStatus: "Rychlý status pro celý den:",
         btnTaken: "Užito",
-        btnMissed: "Vynecháno"
+        btnMissed: "Vynecháno",
+        btnActionEdit: "Upravit",
+        btnActionDelete: "Smazat",
+        alertSaved: "Záznam uložen!",
+        alertUpdated: "Záznam aktualizován!",
+        confirmDelete: "Opravdu chcete tento záznam smazat?"
     }
 };
 
@@ -60,16 +81,18 @@ let dayStatuses = JSON.parse(localStorage.getItem('day_statuses')) || {};
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', () => {
+    setDefaultDateTime();
+    changeLanguage('en'); // English defaults on startup
+});
+
+function setDefaultDateTime() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('pillDate').value = today;
     
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     document.getElementById('pillTime').value = timeStr;
-
-    // Англійська є головною при старті сайту
-    changeLanguage('en'); 
-});
+}
 
 // --- TRANSLATION ENGINE ---
 function changeLanguage(lang) {
@@ -77,13 +100,16 @@ function changeLanguage(lang) {
     document.getElementById('langSelect').value = lang;
     
     const t = translations[lang];
+    const isEditing = document.getElementById('editIndex').value !== "-1";
     
-    document.getElementById('txtFormTitle').innerText = t.formTitle;
+    // Update Form Title and Button state depending on active mode (Add vs Edit)
+    document.getElementById('txtFormTitle').innerText = isEditing ? t.formTitleEdit : t.formTitleAdd;
+    document.getElementById('btnSave').innerText = isEditing ? t.btnSaveEdit : t.btnSaveAdd;
+
     document.getElementById('lblDate').innerText = t.lblDate;
     document.getElementById('lblTime').innerText = t.lblTime;
     document.getElementById('lblPillName').innerText = t.lblPillName;
     document.getElementById('lblDose').innerText = t.lblDose;
-    document.getElementById('btnSave').innerText = t.btnSave;
     document.getElementById('txtCalendarTitle').innerText = t.calendarTitle;
     document.getElementById('txtDeveloper').innerText = t.developer;
     document.getElementById('lblDayStatus').innerText = t.dayStatus;
@@ -151,28 +177,102 @@ function changeMonth(direction) {
     renderCalendar();
 }
 
-// --- DATA FORM MANAGEMENT ---
+// --- DATA FORM MANAGEMENT (SAVE & UPDATE) ---
 function saveLog(e) {
     e.preventDefault();
     
+    const editIndex = parseInt(document.getElementById('editIndex').value);
     const date = document.getElementById('pillDate').value;
     const time = document.getElementById('pillTime').value;
     const name = document.getElementById('pillName').value;
     const dose = document.getElementById('pillDose').value;
 
-    pillLogs.push({ date, time, name, dose });
-    localStorage.setItem('pill_logs', JSON.stringify(pillLogs));
-
-    if (!dayStatuses[date]) {
-        dayStatuses[date] = 'taken';
-        localStorage.setItem('day_statuses', JSON.stringify(dayStatuses));
+    if (editIndex === -1) {
+        // Mode: CREATE NEW LOG
+        pillLogs.push({ date, time, name, dose });
+        if (!dayStatuses[date]) {
+            dayStatuses[date] = 'taken';
+        }
+        alert(translations[currentLang].alertSaved);
+    } else {
+        // Mode: UPDATE EXISTING LOG
+        const oldDate = pillLogs[editIndex].date;
+        pillLogs[editIndex] = { date, time, name, dose };
+        
+        // Clean up status of the old date if no entries left there
+        cleanUpDayStatus(oldDate);
+        
+        // Ensure new date gets active status indicator
+        if (!dayStatuses[date]) {
+            dayStatuses[date] = 'taken';
+        }
+        
+        alert(translations[currentLang].alertUpdated);
     }
 
+    localStorage.setItem('pill_logs', JSON.stringify(pillLogs));
+    localStorage.setItem('day_statuses', JSON.stringify(dayStatuses));
+
+    resetForm();
+    renderCalendar();
+}
+
+function resetForm() {
+    document.getElementById('editIndex').value = "-1";
     document.getElementById('pillName').value = '';
     document.getElementById('pillDose').value = '';
+    document.getElementById('btnCancelEdit').style.display = 'none';
+    setDefaultDateTime();
+    changeLanguage(currentLang);
+}
 
+// --- EDIT & DELETE ENTRIES FROM MODAL ---
+function startEditLog(globalIndex) {
+    const log = pillLogs[globalIndex];
+    
+    document.getElementById('editIndex').value = globalIndex;
+    document.getElementById('pillDate').value = log.date;
+    document.getElementById('pillTime').value = log.time;
+    document.getElementById('pillName').value = log.name;
+    document.getElementById('pillDose').value = log.dose;
+    
+    document.getElementById('btnCancelEdit').style.display = 'block';
+    
+    // Jump user focus to the input form section on mobile viewport
+    document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+    
+    closeModal();
+    changeLanguage(currentLang);
+}
+
+function deleteLog(globalIndex) {
+    if (!confirm(translations[currentLang].confirmDelete)) return;
+    
+    const targetDate = pillLogs[globalIndex].date;
+    
+    // Remove element from global logs array
+    pillLogs.splice(globalIndex, 1);
+    localStorage.setItem('pill_logs', JSON.stringify(pillLogs));
+    
+    cleanUpDayStatus(targetDate);
+    localStorage.setItem('day_statuses', JSON.stringify(dayStatuses));
+    
+    // If modal is open, refresh its current items list dynamically or close if empty
+    const remainingPills = pillLogs.filter(log => log.date === targetDate);
+    if (remainingPills.length > 0) {
+        openDayModal(targetDate);
+    } else {
+        closeModal();
+    }
+    
     renderCalendar();
-    alert(currentLang === 'uk' ? 'Запис збережено!' : (currentLang === 'cs' ? 'Záznam uložen!' : 'Entry saved!'));
+}
+
+function cleanUpDayStatus(dateStr) {
+    const hasAnyLogsLeft = pillLogs.some(log => log.date === dateStr);
+    if (!hasAnyLogsLeft && (dayStatuses[dateStr] === 'taken')) {
+        delete dayStatuses[dateStr];
+    }
 }
 
 // --- MODAL / DETAIL VIEW ---
@@ -186,13 +286,18 @@ function openDayModal(dateStr) {
     title.innerText = dateStr;
     listContainer.innerHTML = '';
 
-    const dayPills = pillLogs.filter(log => log.date === dateStr);
-    dayPills.sort((a,b) => a.time.localeCompare(b.time));
+    // Filter pills for this specific day, keeping track of original array indices
+    const dayPillsWithIndex = pillLogs
+        .map((log, index) => ({ ...log, globalIndex: index }))
+        .filter(log => log.date === dateStr);
 
-    if (dayPills.length === 0) {
+    // Sort entries strictly by execution clock time
+    dayPillsWithIndex.sort((a, b) => a.time.localeCompare(b.time));
+
+    if (dayPillsWithIndex.length === 0) {
         listContainer.innerHTML = `<p style="color: var(--text-muted); font-size:0.9rem;">${t.noRecords}</p>`;
     } else {
-        dayPills.forEach(pill => {
+        dayPillsWithIndex.forEach(pill => {
             const item = document.createElement('div');
             item.className = 'pill-list-item';
             item.innerHTML = `
@@ -200,7 +305,13 @@ function openDayModal(dateStr) {
                     <strong>${pill.name}</strong><br>
                     <span style="color: var(--text-muted); font-size: 0.9rem;">${pill.dose}</span>
                 </div>
-                <span class="pill-time">⏰ ${pill.time}</span>
+                <div class="pill-actions-wrapper">
+                    <span class="pill-time">⏰ ${pill.time}</span>
+                    <div class="action-buttons">
+                        <button class="btn-action edit" onclick="startEditLog(${pill.globalIndex})">${t.btnActionEdit}</button>
+                        <button class="btn-action delete" onclick="deleteLog(${pill.globalIndex})">${t.btnActionDelete}</button>
+                    </div>
+                </div>
             `;
             listContainer.appendChild(item);
         });
