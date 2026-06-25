@@ -26,6 +26,8 @@
         <section id="formSection">
             <h2 id="txtFormTitle">Log Medication</h2>
             <form id="pillForm" onsubmit="saveLog(event)">
+                <input type="hidden" id="editIndex" value="-1">
+                
                 <div class="form-group">
                     <label id="lblDate" for="pillDate">Date</label>
                     <input type="date" id="pillDate" required>
@@ -43,6 +45,7 @@
                     <input type="text" id="pillDose" placeholder="500mg, 1 tab..." required>
                 </div>
                 <button type="submit" class="btn" id="btnSave">Save Entry</button>
+                <button type="button" class="btn btn-cancel" id="btnCancelEdit" onclick="resetForm()" style="display: none; background-color: #555; margin-top: 5px;">Cancel Edit</button>
             </form>
         </section>
 
@@ -86,4 +89,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
