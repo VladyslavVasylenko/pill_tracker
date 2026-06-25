@@ -16,6 +16,7 @@
     --color-missed: #f44336;
     --color-future: #444444;
     --accent-color: #3f51b5;
+    --edit-color: #ff9800;
 }
 
 body {
@@ -130,7 +131,7 @@ input:focus, select:focus {
     background-color: #5c6bc0;
 }
 
-/* --- CALENDAR STYLES (Чистий CSS Grid) --- */
+/* --- CALENDAR STYLES (Pure CSS Grid) --- */
 .calendar-header {
     margin-bottom: 15px;
 }
@@ -245,6 +246,7 @@ input:focus, select:focus {
     float: right;
 }
 
+/* --- LOG ITEM ACTION BUTTONS --- */
 .pill-list-item {
     background-color: var(--surface-accent);
     padding: 10px;
@@ -254,14 +256,38 @@ input:focus, select:focus {
 
 .pill-info {
     display: inline-block;
+    max-width: 60%;
+}
+
+.pill-actions-wrapper {
+    float: right;
+    text-align: right;
 }
 
 .pill-time {
     font-size: 0.8rem;
     color: var(--text-muted);
-    float: right;
-    margin-top: 10px;
+    display: block;
+    margin-bottom: 5px;
 }
+
+.action-buttons {
+    display: block;
+}
+
+.btn-action {
+    padding: 3px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: white;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+.btn-action.edit { background-color: var(--edit-color); }
+.btn-action.delete { background-color: var(--color-missed); }
 
 .pill-list-item::after {
     content: "";
@@ -298,7 +324,7 @@ footer {
     border-top: 1px solid var(--surface-accent);
 }
 
-/* --- MEDIA QUERIES (Адаптація під десктоп) --- */
+/* --- MEDIA QUERIES (Desktop Grid layout) --- */
 @media (min-width: 768px) {
     body { padding: 20px; }
     main { 
@@ -310,3 +336,4 @@ footer {
     section { margin-bottom: 0; }
     footer { max-width: 800px; margin-left: auto; margin-right: auto; width: 100%; }
 }
+
