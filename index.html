@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PillTracker - Medication Calendar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span class="logo-icon">💊</span>
+            <span>PillTracker</span>
+        </div>
+        <div class="lang-selector">
+            <select id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="en">EN</option>
+                <option value="uk">UK</option>
+                <option value="cs">CS</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <section id="formSection">
+            <h2 id="txtFormTitle">Log Medication</h2>
+            <form id="pillForm" onsubmit="saveLog(event)">
+                <div class="form-group">
+                    <label id="lblDate" for="pillDate">Date</label>
+                    <input type="date" id="pillDate" required>
+                </div>
+                <div class="form-group">
+                    <label id="lblTime" for="pillTime">Time</label>
+                    <input type="time" id="pillTime" required>
+                </div>
+                <div class="form-group">
+                    <label id="lblPillName" for="pillName">Medication Name</label>
+                    <input type="text" id="pillName" placeholder="Paracetamol, Vitamin C..." required>
+                </div>
+                <div class="form-group">
+                    <label id="lblDose" for="pillDose">Dosage</label>
+                    <input type="text" id="pillDose" placeholder="500mg, 1 tab..." required>
+                </div>
+                <button type="submit" class="btn" id="btnSave">Save Entry</button>
+            </form>
+        </section>
+
+        <section id="calendarSection">
+            <div class="calendar-header">
+                <h2 id="txtCalendarTitle" style="margin-bottom: 0;">Calendar</h2>
+                <div class="calendar-controls">
+                    <button onclick="changeMonth(-1)" class="btn btn-nav">&lt;</button>
+                    <span id="currentMonthYear"></span>
+                    <button onclick="changeMonth(1)" class="btn btn-nav">&gt;</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                </div>
+        </section>
+    </main>
+
+    <div class="modal" id="dayModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalDateTitle">Details</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalPillsList">
+                </div>
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label id="lblDayStatus">Quick Status for the whole day:</label>
+                <div class="status-actions">
+                    <button class="btn-status take" onclick="setDayStatus('taken')" id="btnStatusTaken">Taken</button>
+                    <button class="btn-status miss" onclick="setDayStatus('missed')" id="btnStatusMissed">Missed</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 PillTracker. <span id="txtDeveloper">Developer: Vladyslav</span></p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
 
